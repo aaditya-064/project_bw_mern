@@ -1,5 +1,6 @@
 import express, { NextFunction, Request, Response } from "express";
 import { errorHandler } from "./middlewares/errorHandler.middleware";
+import routes from "./routes";
 // @types/packageName
 
 //* creating app instances
@@ -7,8 +8,10 @@ const app = express();
 
 //! using middlewares
 app.use(express.json({ limit: "10mb" }));
+app.use(express.urlencoded({ extended: true }));
 
 //! using routes
+app.use("/api/v1", routes);
 
 //* health route
 app.get("/", (req: Request, res: Response, next: NextFunction) => {
