@@ -2,6 +2,9 @@
 import { NextFunction, Request, Response } from "express";
 import User from "../models/user.model";
 import { hashPassword, comparePassword } from "../utils/bcrypt.utils";
+import { catchAsync } from "../utils/catchAsync.utils";
+import { sendResponse } from "../utils/sendResponse.utils";
+import { upload } from "../utils/cloudinary.utils";
 
 //* register
 export const register = async (
@@ -10,12 +13,17 @@ export const register = async (
   next: NextFunction,
 ) => {
   try {
-    const { name, email, password } = req.body;
-    if (!name || !email || !password) {
+    const { full_name, email, password } = req.body;
+    if (!full_name || !email || !password) {
       throw Error("Full information required");
     }
     const hashedPassword = await hashPassword(password);
-    const user = await User.create({ name, email, password: hashedPassword });
+    const user = await User.create({
+      full_name,
+      email,
+      password: hashedPassword,
+    });
+
     res.status(201).json({
       message: "Register success",
       status: "success",
@@ -67,6 +75,41 @@ export const login = async (
     next(err);
   }
 };
+
+//* logout
+
+//* get profile
+
+//* change profile image
+export const changeProfileImage = catchAsync(
+  async (req: Request, res: Response) => {
+    const { _id } = req.user;
+    const file = req.file;
+    if (!file) {
+      throw new Error("File Not Found");
+    }
+    const user = await User.find({ _id });
+    if (!user) {
+      throw new Error("User Not Found");
+    }
+    // await
+    //! delete old image
+    if (user.profile_image && user.profile_image?.public_id) {
+      await deleteFile(user.profile_image.public_id);
+    }
+    const { path, public_id } = await upload(file, uploadFolder);
+    user.profile_image = {
+      path,
+      public_id,
+    };
+
+    sendResponse(res, {
+      message: "Profile updated",
+      statusCode: 200,
+      data: user,
+    });
+  },
+);
 
 //* change password
 
