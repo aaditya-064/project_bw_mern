@@ -2,10 +2,19 @@
 import { NextFunction, Request, Response } from "express";
 import User from "../models/user.model";
 import { hashPassword, comparePassword } from "../utils/bcrypt.utils";
-import { catchAsync } from "../utils/catchAsync.utils";
-import { sendResponse } from "../utils/sendResponse.utils";
+// import { catchAsync } from "../utils/catchAsync.utils";
+// import { sendResponse } from "../utils/sendResponse.utils";
 // import { deleteFile, upload } from "../utils/cloudinary.utils";
 import { sendEmail } from "../utils/emailServer.utils";
+import {
+  accountCreatedHtml,
+  newLoginDetectedHtml,
+} from "../utils/emailTemplate.utils";
+// import { sendResponse } from "../utils/sendResponse.utils";
+import ENV_CONFIG from "../config/env.config";
+import { generateJwtToken } from "../utils/jwt.utils";
+import { IJwtPayload } from "../types/global.types";
+import { Role } from "../types/enum.types";
 
 //* register
 export const register = async (
@@ -28,10 +37,11 @@ export const register = async (
     sendEmail({
       to: user.email,
       subject: "Account created",
-      html: `<div>
-      <h2>Account created</h2>
-      <p>Hello ${user.full_name}, welcome to out service</p>
-      </div>`,
+      html: accountCreatedHtml({
+        full_name: user.full_name,
+        createdAt: new Date(Date.now()),
+        email: user.email,
+      }),
     });
 
     res.status(201).json({
@@ -40,7 +50,6 @@ export const register = async (
       success: true,
       data: user,
     });
-    next();
   } catch (err) {
     next(err);
   }
@@ -72,15 +81,32 @@ export const login = async (
     }
 
     //todo: generate jwt token
+    const payload: IJwtPayload = {
+      _id: user._id,
+      email: user.email,
+      role: user.role as Role,
+    };
+    const access_token = generateJwtToken(payload);
 
-    //* send success response
-    res.status(201).json({
-      message: "Login success",
-      status: "success",
-      success: true,
-      data: user,
+    res.cookie("access_token", access_token, {
+      httpOnly: ENV_CONFIG.NODE_ENV === "development" ? false : true,
+      secure: ENV_CONFIG.NODE_ENV === "development" ? false : true,
+      maxAge: 7 * 24 * 60 * 60 * 1000,
+      sameSite: ENV_CONFIG.NODE_ENV === "development" ? "lax" : "none",
     });
-    next();
+    console.log(access_token);
+    // const { password: p } = user.toObject();
+    //* send success response
+    sendEmail({
+      to: user.email,
+      subject: "Login Detected",
+      html: newLoginDetectedHtml({
+        full_name: user.full_name,
+        email: user.email,
+        loginTime: new Date(Date.now()),
+        device: req.headers["user-agent"]!!,
+      }),
+    });
   } catch (err) {
     next(err);
   }
@@ -91,35 +117,35 @@ export const login = async (
 //* get profile
 
 //* change profile image
-export const changeProfileImage = catchAsync(
-  async (req: Request, res: Response) => {
-    const { _id } = req.user;
-    const file = req.file;
-    if (!file) {
-      throw new Error("File Not Found");
-    }
-    const user = await User.find({ _id });
-    if (!user) {
-      throw new Error("User Not Found");
-    }
-    // await
-    //! delete old image
-    // if (user.profile_image && user.profile_image?.public_id) {
-    //   await deleteFile(user.profile_image.public_id);
-    // }
-    // const { path, public_id } = await upload(file, uploadFolder);
-    // user.profile_image = {
-    //   path,
-    //   public_id,
-    // };
+// export const changeProfileImage = catchAsync(
+//   async (req: Request, res: Response) => {
+//     const { _id } = req.user;
+//     const file = req.file;
+//     if (!file) {
+//       throw new Error("File Not Found");
+//     }
+//     const user = await User.find({ _id });
+//     if (!user) {
+//       throw new Error("User Not Found");
+//     }
+//     // await
+//     //! delete old image
+//     // if (user.profile_image && user.profile_image?.public_id) {
+//     //   await deleteFile(user.profile_image.public_id);
+//     // }
+//     // const { path, public_id } = await upload(file, uploadFolder);
+//     // user.profile_image = {
+//     //   path,
+//     //   public_id,
+//     // };
 
-    sendResponse(res, {
-      message: "Profile updated",
-      statusCode: 200,
-      data: user,
-    });
-  },
-);
+//     sendResponse(res, {
+//       message: "Profile updated",
+//       statusCode: 200,
+//       data: user,
+//     });
+//   },
+// );
 
 //* change password
 

@@ -1,7 +1,6 @@
 import { Request, Response, NextFunction } from "express";
 import User from "../models/user.model";
 
-
 export const getAllUser = async (
   req: Request,
   res: Response,
@@ -48,27 +47,27 @@ export const getProfile = async (
   }
 };
 
-export const getAllAdmin = async (
-  req: Request,
-  res: Response,
-  next: NextFunction,
-) => {
-  try {
-    const admins = await User.find({
-      role: {
-        $in: ["ADMIN", "SUPERADMIN"],
-      },
-    });
-    if (!admins) {
-      throw new Error("Data not found");
-    }
-    res.status(201).json({
-      message: "Data found",
-      status: "success",
-      success: true,
-      data: admins,
-    });
-  } catch (err) {
-    throw err;
-  }
-};
+// export const getAllAdmin = async (
+//   req: Request,
+//   res: Response,
+//   next: NextFunction,
+// ) => {
+//   try {
+//     const admins = await User.find({
+//       role: {
+//         $in: ["ADMIN", "SUPERADMIN"],
+//       },
+//     });
+//     if (!admins) {
+//       throw new Error("Data not found");
+//     }
+//     res.status(201).json({
+//       message: "Data found",
+//       status: "success",
+//       success: true,
+//       data: admins,
+//     });
+//   } catch (err) {
+//     throw err;
+//   }
+// };

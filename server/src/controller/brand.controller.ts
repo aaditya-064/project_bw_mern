@@ -11,7 +11,6 @@ export const getBrand = catchAsync(
       success: true,
       data: brands,
     });
-    next();
   },
 );
 
@@ -39,7 +38,6 @@ export const createBrand = catchAsync(
       success: true,
       data: brand,
     });
-    next();
   },
 );
 
@@ -53,7 +51,6 @@ export const getBrandById = catchAsync(
       success: true,
       data: brand,
     });
-    next();
   },
 );
 
@@ -70,7 +67,6 @@ export const updateBrand = catchAsync(
       success: true,
       data: brand,
     });
-    next();
   },
 );
 
@@ -84,6 +80,5 @@ export const deleteBrand = catchAsync(
       success: true,
       data: brand,
     });
-    next();
   },
 );
