@@ -4,7 +4,8 @@ import User from "../models/user.model";
 import { hashPassword, comparePassword } from "../utils/bcrypt.utils";
 import { catchAsync } from "../utils/catchAsync.utils";
 import { sendResponse } from "../utils/sendResponse.utils";
-import { upload } from "../utils/cloudinary.utils";
+// import { deleteFile, upload } from "../utils/cloudinary.utils";
+import { sendEmail } from "../utils/emailServer.utils";
 
 //* register
 export const register = async (
@@ -22,6 +23,15 @@ export const register = async (
       full_name,
       email,
       password: hashedPassword,
+    });
+    //* send account created email
+    sendEmail({
+      to: user.email,
+      subject: "Account created",
+      html: `<div>
+      <h2>Account created</h2>
+      <p>Hello ${user.full_name}, welcome to out service</p>
+      </div>`,
     });
 
     res.status(201).json({
@@ -94,14 +104,14 @@ export const changeProfileImage = catchAsync(
     }
     // await
     //! delete old image
-    if (user.profile_image && user.profile_image?.public_id) {
-      await deleteFile(user.profile_image.public_id);
-    }
-    const { path, public_id } = await upload(file, uploadFolder);
-    user.profile_image = {
-      path,
-      public_id,
-    };
+    // if (user.profile_image && user.profile_image?.public_id) {
+    //   await deleteFile(user.profile_image.public_id);
+    // }
+    // const { path, public_id } = await upload(file, uploadFolder);
+    // user.profile_image = {
+    //   path,
+    //   public_id,
+    // };
 
     sendResponse(res, {
       message: "Profile updated",
