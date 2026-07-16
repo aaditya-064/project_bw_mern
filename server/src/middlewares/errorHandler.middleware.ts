@@ -17,6 +17,7 @@ export const errorHandler = (
     status,
     success,
     data: null,
+    details: error?.errors || null,
     originalError: error?.stack,
   });
 };

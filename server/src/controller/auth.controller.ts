@@ -15,6 +15,7 @@ import ENV_CONFIG from "../config/env.config";
 import { generateJwtToken } from "../utils/jwt.utils";
 import { IJwtPayload } from "../types/global.types";
 import { Role } from "../types/enum.types";
+import { sendResponse } from "../utils/sendResponse.utils";
 
 //* register
 export const register = async (
@@ -44,11 +45,12 @@ export const register = async (
       }),
     });
 
-    res.status(201).json({
-      message: "Register success",
-      status: "success",
-      success: true,
-      data: user,
+    sendResponse(res, {
+      message: "Registered Successfully",
+      statusCode: 201,
+      data: {
+        user,
+      },
     });
   } catch (err) {
     next(err);
@@ -106,6 +108,15 @@ export const login = async (
         loginTime: new Date(Date.now()),
         device: req.headers["user-agent"]!!,
       }),
+    });
+    const { password: p, ...rest } = user.toObject();
+    sendResponse(res, {
+      message: "Login success",
+      statusCode: 201,
+      data: {
+        user: rest,
+        access_token,
+      },
     });
   } catch (err) {
     next(err);

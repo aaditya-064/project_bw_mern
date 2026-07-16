@@ -23,14 +23,14 @@ export const createBrand = catchAsync(
     if (findBrand) {
       throw new Error("Brand Already Exists");
     }
-    const logoFile = req.file;
-    if (!logoFile) {
-      throw new Error("No logo");
-    }
+    // const logoFile = req.file;
+    // if (!logoFile) {
+    //   throw new Error("No logo");
+    // }
     const brand = await Brand.create({
       name,
       description,
-      logo: logoFile?.filename,
+      // logo: logoFile?.filename!!,
     });
     res.status(201).json({
       message: "Brand Created",

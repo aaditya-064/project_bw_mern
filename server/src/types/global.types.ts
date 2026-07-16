@@ -1,5 +1,5 @@
-import { Role } from "./enum.types";
 import mongoose from "mongoose";
+import { Role } from "./enum.types";
 
 export interface IImage {
   path: string;
