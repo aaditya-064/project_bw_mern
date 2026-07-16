@@ -30,7 +30,7 @@ const brandSchema = new Schema<IBrand>(
 
     logo: {
       type: ImageSchema,
-      required: [true, "Logo is required"],
+      // required: [true, "Logo is required"],
     },
   },
   {

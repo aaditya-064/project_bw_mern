@@ -24,3 +24,5 @@ export const registerUserSchema = z.object({
   params: z.object({}).default({}),
   query: z.object({}).default({}),
 });
+
+export const brandSchema = z.object({});

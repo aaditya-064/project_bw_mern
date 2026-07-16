@@ -3,8 +3,29 @@ import Brand from "../models/brand.model";
 import { catchAsync } from "../utils/catchAsync.utils";
 
 export const getBrand = catchAsync(
-  async (_, res: Response, next: NextFunction) => {
-    const brands = await Brand.find();
+  async (req: Request, res: Response, next: NextFunction) => {
+    // console.log(req.query);
+    const { query } = req.query;
+    const filter: Record<string, any> = {};
+
+    if (query) {
+      filter.$or = [
+        {
+          name: {
+            $regex: query,
+            $options: "i", //* case is in-sensitive
+          },
+        },
+        {
+          description: {
+            $regex: query,
+            $options: "i", //* case is in-sensitive
+          },
+        },
+      ];
+    }
+
+    const brands = await Brand.find(filter);
     res.status(201).json({
       message: "Brands Found",
       status: "success",
