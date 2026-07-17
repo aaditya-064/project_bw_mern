@@ -7,7 +7,36 @@ import AppError from "../utils/appError.utils";
 
 export const getAll = catchAsync(
   async (req: Request, res: Response, next: NextFunction) => {
-    const categories = await Category.find();
+    const { query, order = "DESC", sortBy = "createdAt" } = req.query;
+    const filter: Record<string, any> = {};
+    if (query) {
+      filter.$or = [
+        {
+          name: {
+            $regex: query,
+            $options: "i",
+          },
+        },
+        {
+          description: {
+            $regex: query,
+            $options: "i",
+          },
+        },
+      ];
+      //* and garna paryo bhani
+      //   filter.name = {
+      //     $regex: query,
+      //     $options: "i",
+      //   };
+      //   filter.description = {
+      //     $regex: query,
+      //     $options: "i",
+      //   };
+    }
+    const categories = await Category.find(filter).sort({
+      [sortBy as string]: order === "DESC" ? -1 : 1,
+    });
 
     res.status(200).json({
       success: true,
@@ -40,19 +69,31 @@ export const getById = catchAsync(
 //* create  -> ashmita
 export const create = catchAsync(
   async (req: Request, res: Response, next: NextFunction) => {
-    // authentication
+    // authentication logic
 
     const { name, description } = req.body;
 
-    if (!name) throw new AppError("name is required", 404);
-    if (!description) throw new AppError("description is required", 404);
+    if (!name) throw new AppError("name is required", 400);
+    if (!description) throw new AppError("description is required", 400);
+
+    // 2. Check if the file was actually uploaded by Multer
+    if (!req.file) {
+      throw new AppError("Logo image file is required", 400);
+    }
+
+    const logo = req.file.path;
 
     const existingCategory = await Category.findOne({ name });
     if (existingCategory) {
-      throw new AppError("name already exists", 404);
+      throw new AppError("Category name already exists", 400);
     }
 
-    const category = new Category({ name, description });
+    const category = new Category({
+      name,
+      description,
+      logo,
+    });
+
     await category.save();
 
     res.status(201).json({

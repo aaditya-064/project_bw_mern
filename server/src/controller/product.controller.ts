@@ -8,7 +8,55 @@ const folder = "/products";
 
 //* get all
 export const getAll = catchAsync(async (req, res) => {
-  const products = await Product.find({});
+  const { query, category, brand, minPrice, maxPrice } = req.query;
+  const filter: any = {};
+  if (query) {
+    filter.$or = [
+      {
+        name: {
+          $regex: query,
+          $options: "i",
+        },
+      },
+      {
+        description: {
+          $regex: query,
+          $options: "i",
+        },
+      },
+    ];
+  }
+
+  if (category) {
+    filter.category = category;
+  }
+  if (brand) {
+    filter.brand = brand;
+  }
+
+  if (minPrice || maxPrice) {
+    const low = Number(minPrice);
+    const high = Number(maxPrice);
+
+    if (low) {
+      filter.price = {
+        $gte: low,
+      };
+    }
+    if (high) {
+      filter.price = {
+        $lte: high,
+      };
+    }
+    if (low && high) {
+      filter.price = {
+        $lte: high,
+        $gte: low,
+      };
+    }
+  }
+
+  const products = await Product.find(filter);
 
   sendResponse(res, {
     data: products,
@@ -16,6 +64,7 @@ export const getAll = catchAsync(async (req, res) => {
     statusCode: 200,
   });
 });
+
 //* get by id
 export const getById = catchAsync(async (req, res) => {
   const { id } = req.params;

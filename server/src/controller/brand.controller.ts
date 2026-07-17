@@ -1,11 +1,23 @@
 import { NextFunction, Request, Response } from "express";
 import Brand from "../models/brand.model";
 import { catchAsync } from "../utils/catchAsync.utils";
+import { getPagination } from "../utils/pagination.utils";
 
 export const getBrand = catchAsync(
   async (req: Request, res: Response, next: NextFunction) => {
     // console.log(req.query);
-    const { query } = req.query;
+    const {
+      query,
+      order = "DESC",
+      sortBy = "createdAt",
+      page = 1,
+      limit = 10,
+    } = req.query;
+
+    const currentPage = Number(page);
+    const perPage = Number(limit);
+    const skip = (currentPage - 1) * perPage;
+
     const filter: Record<string, any> = {};
 
     if (query) {
@@ -25,12 +37,23 @@ export const getBrand = catchAsync(
       ];
     }
 
-    const brands = await Brand.find(filter);
+    const brands = await Brand.find(filter)
+      .limit(perPage)
+      .skip(skip)
+      .sort({
+        [sortBy as string]: order === "DESC" ? -1 : 1,
+      });
+
+    const totalCount = await Brand.countDocuments(filter);
+
     res.status(201).json({
       message: "Brands Found",
       status: "success",
       success: true,
-      data: brands,
+      data: {
+        brands,
+        pagination: getPagination(totalCount, perPage, currentPage),
+      },
     });
   },
 );
