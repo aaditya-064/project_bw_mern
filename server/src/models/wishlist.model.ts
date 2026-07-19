@@ -9,13 +9,13 @@ const wishlistSchema = new Schema<IWishlist>(
   {
     user_id: {
       type: mongoose.Schema.Types.ObjectId,
-      required: [true, "User ID is required"],
       ref: "user",
+      required: [true, "User ID is required"],
     },
     product: {
       type: mongoose.Schema.Types.ObjectId,
-      required: [true, "Product ID is required"],
       ref: "product",
+      required: [true, "Product ID is required"],
     },
   },
   { timestamps: true },

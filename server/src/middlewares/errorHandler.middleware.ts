@@ -1,4 +1,5 @@
 import { NextFunction, Request, Response } from "express";
+import { JsonWebTokenError } from "jsonwebtoken";
 
 export const errorHandler = (
   error: any,
@@ -6,11 +7,20 @@ export const errorHandler = (
   res: Response,
   next: NextFunction,
 ) => {
-  console.log(error);
-  const message = error?.message ?? "Internal server error";
-  const status = error?.status ?? "Error";
-  const statusCode = error?.statusCode ?? 500;
+  let message = error?.message ?? "Internal server error";
+  let status = error?.status ?? "Error";
+  let statusCode = error?.statusCode ?? 500;
   const success = false;
+
+  // if ((error?.cause?.code = 11000)) {
+  //   statusCode = 400;
+  //   status = "Fail";
+  // }
+
+  if (error instanceof JsonWebTokenError) {
+    message = "Invalid Token. Login required";
+    statusCode = 401;
+  }
 
   res.status(statusCode).json({
     message,
